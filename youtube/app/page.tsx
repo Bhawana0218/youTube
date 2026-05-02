@@ -5,13 +5,15 @@ import VideoGrid from "@/components/Videogrid";
 import { Suspense } from "react";
 import { Toaster } from "sonner";
 
+
 export default function App() {
   return (
+
     <div className="min-h-screen bg-white text-black">
-    <Toaster/>
+      <Toaster />
       <Category />
       <Suspense fallback={<div>Loading Videos...</div>}>
-      <VideoGrid />
+        <VideoGrid />
       </Suspense>
     </div>
   );

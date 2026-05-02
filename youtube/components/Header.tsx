@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from './ui/button';
 import { BellIcon, Menu, Mic, Search, User, VideoIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -8,20 +8,34 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import ChannelDialog from './ChannelDialog';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@/lib/AuthContext';
 
 const Header = () => {
 
-  const user: any = {
-    id: '1',
-    name: 'Bhawana Bisht',
-    email: 'bhawana1205bisht1802@gmail.com',
-    image: 'https://i.pravatar.cc/150?img=5',
-  }
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+const { user, loading, logout, handlegooglesignin } = useUser() as {
+  user: {
+    id: string;
+    name: string;
+    image: string;
+    email?: string;
+  } | null;
+  loading: boolean;
+  logout: () => Promise<void>;
+  handlegooglesignin: () => Promise<void>;
+};
 
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [hasChannel, setHasChannel] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  
 
   const handleSearch = (e: React.ChangeEvent) => {
     e.preventDefault();
@@ -36,6 +50,8 @@ const Header = () => {
       handleSearch(e as any);
     }
   }
+
+if (!mounted) return null;
 
   return (
     <header className="flex items-center px-4 py-2 bg-white shadow-sm sticky top-0 z-50">
@@ -98,9 +114,9 @@ const Header = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Avatar className="cursor-pointer w-8 h-8">
-                  <AvatarImage src={user.image} alt={user.name} />
+                  <AvatarImage src={user?.image} alt={user?.name} />
                   <AvatarFallback>
-                    {user.name.charAt(0).toUpperCase()}
+                    {user?.name?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
@@ -135,12 +151,12 @@ const Header = () => {
                   <Link href="/watch-later">Watch Later</Link>
                 </DropdownMenuItem>
 
-                <DropdownMenuItem>Sign Out</DropdownMenuItem>
+                <DropdownMenuItem onClick={logout}>Sign Out</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </>
         ) : (
-          <Button variant="outline" className="rounded-full px-4 flex items-center gap-2">
+          <Button variant="outline" className="rounded-full px-4 flex items-center gap-2" onClick={handlegooglesignin}>
             <User className="w-4 h-4" />
             Sign In
           </Button>
