@@ -67,7 +67,14 @@ export const UserProvider = ({ children }) => {
                 payload
             );
 
-            login(response.data.result);
+            // Transform _id to id for frontend consistency
+            const userData = response.data.result;
+            if (userData._id) {
+                userData.id = userData._id;
+                delete userData._id;
+            }
+
+            login(userData);
         } catch (error) {
             console.error("Error during Google sign-in:", error);
         }
@@ -91,7 +98,14 @@ export const UserProvider = ({ children }) => {
                             payload
                         );
 
-                        login(response.data.result);
+                        // Transform _id to id for frontend consistency
+                        const userData = response.data.result;
+                        if (userData._id) {
+                            userData.id = userData._id;
+                            delete userData._id;
+                        }
+
+                        login(userData);
                     } catch (error) {
                         console.log("Error: ", error);
                         logout();

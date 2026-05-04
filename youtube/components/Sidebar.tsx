@@ -1,28 +1,39 @@
 'use client'
 
 import Link from 'next/link';
-import React, { useState } from 'react';
-import { Home, Compass, PlaySquare, History, ThumbsUp, Clock, User } from 'lucide-react';
-import { DropdownMenuItem } from './ui/dropdown-menu';
+import React, { useEffect, useState } from 'react';
+import { Home, Compass, PlaySquare, History, ThumbsUp, Clock} from 'lucide-react';
 import { Button } from './ui/button';
 import ChannelDialog from './ChannelDialog';
+import { useUser } from '@/lib/AuthContext';
 
 const Sidebar = () => {
 
-   const user: any = {
-        id: '1',
-        name: 'Bhawana Bisht',
-        email: 'bhawana1205bisht1802@gmail.com',
-        image: 'https://i.pravatar.cc/150?img=5',
-    }
-    
-        const [hasChannel, setHasChannel] = useState(false);
-        const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const { user } = useUser() as {
+    user: {
+      id: string;
+      name: string;
+      image: string;
+      email?: string;
+      channelname: string;
+    } | null;
+    loading: boolean;
+    logout: () => Promise<void>;
+    handlegooglesignin: () => Promise<void>;
+  };
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   return (
-    <aside className="w-56 h-screen bg-white border-r fixed top-0 left-0 pt-16 px-2">
+    <aside className="h-full bg-white px-2 py-4">
 
-      <nav className="flex flex-col">
+      <nav className="flex flex-col gap-1">
 
         {/* ITEM */}
         <Link href="/" className="flex items-center gap-4 px-4 py-2 rounded-lg hover:bg-gray-100 cursor-pointer">
@@ -58,17 +69,19 @@ const Sidebar = () => {
           <span className="text-sm">Watch later</span>
         </Link>
 
-         {hasChannel ? (<DropdownMenuItem asChild>
-              <Link href={`/channel/${user.id}`}>Your Channel</Link>
-            </DropdownMenuItem>) :(
-              <div className='px-2 py-1.5'>
-                <Button  className='w-full' variant="outline" size='sm'
-                onClick={() => setIsDialogOpen(true)}>Create Channel</Button>
-              </div>
-            )}
+        {user?.channelname ? (
+          <Link href={`/channel/${user.id}`} className="flex items-center gap-4 px-4 py-2 rounded-lg hover:bg-gray-100">
+            <span className="text-sm">Your Channel</span>
+          </Link>
+        ) : (
+          <div className='px-2 py-1.5'>
+            <Button className='w-full' variant="outline" size='sm'
+              onClick={() => setIsDialogOpen(true)}>Create Channel</Button>
+          </div>
+        )}
 
       </nav>
-      <ChannelDialog isOpen={isDialogOpen} onClose={()=> setIsDialogOpen(false)} mode="create"/>
+      <ChannelDialog isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} mode="create" />
     </aside>
   );
 }

@@ -41,7 +41,7 @@ export default function RootLayout({
               <Sidebar />
             </div>
 
-            <main className="flex-1  p-4">
+            <main className="flex-1 min-w-0 p-4 overflow-x-hidden">
               {children}
             </main>
           </div>

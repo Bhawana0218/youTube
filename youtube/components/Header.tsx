@@ -18,24 +18,24 @@ const Header = () => {
     setMounted(true);
   }, []);
 
-const { user, loading, logout, handlegooglesignin } = useUser() as {
-  user: {
-    id: string;
-    name: string;
-    image: string;
-    email?: string;
-  } | null;
-  loading: boolean;
-  logout: () => Promise<void>;
-  handlegooglesignin: () => Promise<void>;
-};
+  const { user, loading, logout, handlegooglesignin } = useUser() as {
+    user: {
+      id: string;
+      name: string;
+      image: string;
+      email?: string;
+      channelname: string;
+    } | null;
+    loading: boolean;
+    logout: () => Promise<void>;
+    handlegooglesignin: () => Promise<void>;
+  };
 
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [hasChannel, setHasChannel] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  
+
 
   const handleSearch = (e: React.ChangeEvent) => {
     e.preventDefault();
@@ -51,10 +51,10 @@ const { user, loading, logout, handlegooglesignin } = useUser() as {
     }
   }
 
-if (!mounted) return null;
+  if (!mounted) return null;
 
   return (
-    <header className="flex items-center px-4 py-2 bg-white shadow-sm sticky top-0 z-50">
+    <header className="flex flex-wrap items-center gap-3 px-4 py-3 bg-white shadow-sm sticky top-0 z-50">
 
       {/* LEFT */}
       <div className="flex items-center gap-3 shrink-0">
@@ -73,7 +73,7 @@ if (!mounted) return null;
       </div>
 
       {/* CENTER (IMPORTANT FIX) */}
-      <form onSubmit={handleSearch} className="flex flex-1 justify-center">
+      <form onSubmit={handleSearch} className="flex flex-1 justify-center w-full min-w-0">
         <div className="flex items-center w-full max-w-xl">
 
           <div className="flex w-full">
@@ -86,7 +86,7 @@ if (!mounted) return null;
               className="w-full px-4 py-2 border border-gray-300 rounded-l-full focus:outline-none focus:ring-1 focus:ring-gray-400"
             />
 
-            <button className="px-4 border border-l-0 border-gray-300 rounded-r-full bg-gray-100 hover:bg-gray-200">
+            <button className="px-4 border border-l-0 border-gray-300 hover:text-white rounded-r-full bg-gray-100 hover:bg-gray-200">
               <Search className="w-5 h-5" />
             </button>
           </div>
@@ -122,9 +122,9 @@ if (!mounted) return null;
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end" className="w-56" forceMount>
-                {hasChannel ? (
+                {user?.channelname ? (
                   <DropdownMenuItem asChild>
-                    <Link href={`/channel/${user.id}`}>Your Channel</Link>
+                    <Link href={`/channel/${user?.id}`}>Your Channel</Link>
                   </DropdownMenuItem>
                 ) : (
                   <div className="px-2 py-1.5">
@@ -154,6 +154,7 @@ if (!mounted) return null;
                 <DropdownMenuItem onClick={logout}>Sign Out</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
           </>
         ) : (
           <Button variant="outline" className="rounded-full px-4 flex items-center gap-2" onClick={handlegooglesignin}>

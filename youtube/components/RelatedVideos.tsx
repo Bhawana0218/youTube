@@ -12,15 +12,15 @@ const RelatedVideos = ({ video }: any) => {
 
             {video.map((v: any) => (
                 <Link
-                    key={v.id}
-                    href={`/watch/${v.id}`}
+                    key={v._id}
+                    href={`/watch/${v._id}`}
                     className="flex gap-3 group cursor-pointer"
                 >
                     {/* THUMBNAIL */}
                     <div className="relative w-40 h-[94px] flex-shrink-0 rounded-lg overflow-hidden bg-black">
 
                         <video
-                            src={vid}
+                            src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${v.filepath}`}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             muted
                         />

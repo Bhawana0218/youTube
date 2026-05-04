@@ -10,13 +10,27 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
+import axiosInstance from "@/lib/axiosinstance";
+import { useUser } from "@/lib/AuthContext";
+import { useRouter } from "next/navigation";
+
 
 const ChannelDialog = ({ isOpen, onClose, channelData, mode }: any) => {
-    const user: any = {
-        id: "1",
-        name: "Bhawana Bisht",
-        email: "bhawana1205bisht1802@gmail.com",
-        image: "https://i.pravatar.cc/150?img=5",
+
+    const router = useRouter();
+
+    const { user, login } = useUser() as {
+        user: {
+            id: string;
+            name: string;
+            image: string;
+            email?: string;
+            channelname?: string;
+        } | null;
+        loading: boolean;
+        login: (userData: any) => void;
+        logout: () => Promise<void>;
+        handlegooglesignin: () => Promise<void>;
     };
 
     const [formData, setFormData] = useState({
@@ -38,7 +52,7 @@ const ChannelDialog = ({ isOpen, onClose, channelData, mode }: any) => {
                 description: "",
             });
         }
-    }, [channelData, mode]);
+    }, [channelData, mode, user]);
 
     const handleChange = (
         e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -49,18 +63,43 @@ const ChannelDialog = ({ isOpen, onClose, channelData, mode }: any) => {
         }));
     };
 
+
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+
+        if (!user) return;
 
         if (!formData.name.trim()) return;
 
         setIsSubmitting(true);
 
         try {
-            // simulate API call
-            await new Promise((res) => setTimeout(res, 1200));
+            const payload = {
+                channelname: formData.name,
+                description: formData.description,
+            };
 
-            console.log("Channel Saved:", formData);
+
+            const response = await axiosInstance.post(
+                `/user/update/${user.id}`,
+                payload
+            );
+
+            // Transform _id to id for frontend consistency
+            const updatedUser = response.data.result;
+            if (updatedUser._id) {
+                updatedUser.id = updatedUser._id;
+                delete updatedUser._id;
+            }
+
+            login(updatedUser);
+
+            router.push(`/channel/${user.id}`);
+
+            setFormData({
+                name: '',
+                description: '',
+            })
 
             onClose();
         } catch (err) {
@@ -69,6 +108,44 @@ const ChannelDialog = ({ isOpen, onClose, channelData, mode }: any) => {
             setIsSubmitting(false);
         }
     };
+
+    // const handleSubmit = async (e: FormEvent) => {
+    //     e.preventDefault();
+
+    //     const payload = {
+    //         channelname: formData.name,
+    //         description: formData.description
+
+    //     };
+
+    //     if (!user) return;
+
+    //     const response = await axiosInstance.patch(
+    //         `/user/update/${user._id}`,
+    //         payload
+    //     );
+
+    //     login(response?.data);
+
+    //     router.push(`/channel/${user?._id}`);
+
+    //     if (!formData.name.trim()) return;
+
+    //     setIsSubmitting(true);
+
+    //     try {
+    //         // simulate API call
+    //         await new Promise((res) => setTimeout(res, 1200));
+
+    //         console.log("Channel Saved:", formData);
+
+    //         onClose();
+    //     } catch (err) {
+    //         console.error(err);
+    //     } finally {
+    //         setIsSubmitting(false);
+    //     }
+    // };
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>

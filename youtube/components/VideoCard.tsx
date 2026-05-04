@@ -17,12 +17,13 @@ const VideoCard = ({ video }: any) => {
 
     return (
         <div className="group cursor-pointer">
-            <Link href={`/watch/${video.id}`}>
+            <Link href={`/watch/${video._id}`}>
 
                 {/* VIDEO THUMBNAIL */}
                 <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-100">
                     <video
-                        src={videos}
+                        // src={`${process.env.NEXT_PUBLIC_BACKEND_URL}/${video?.filepath}`}
+                        src={`${process.env.NEXT_PUBLIC_BACKEND_URL}/${video?.filepath.replace(/\\/g, "/")}`}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         muted
                     />

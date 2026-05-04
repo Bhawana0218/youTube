@@ -5,6 +5,7 @@ import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Progress } from "./ui/progress";
+import axiosInstance from "@/lib/axiosinstance";
 
 const VideoUploader = ({ channelId, channelName }: any) => {
     const [isUploading, setIsUploading] = useState(false);
@@ -80,6 +81,42 @@ const VideoUploader = ({ channelId, channelName }: any) => {
             });
         }, 300);
     };
+
+    const handleUpload = async () => {
+        if (!videoFile || !videoTitle.trim()) {
+            toast.error("Plesae Provide a video or Title.");
+            return;
+        }
+        const formdata = new FormData();
+        formdata.append("file", videoFile);
+        formdata.append("videotitle", videoTitle);
+        formdata.append("videochannel", channelName || "Unknown Channel");
+        formdata.append("uploader", channelId);
+        try {
+            setIsUploading(true);
+            setUploadProgress(0);
+            const res = await axiosInstance.post("/video/upload", formdata, {
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                },
+                onUploadProgress: (ProgressEvent: any) => {
+                    const progress = Math.round(
+                        (ProgressEvent.loaded * 100) /
+                        (ProgressEvent.total || 1)
+                    );
+
+                    setUploadProgress(progress);
+                }
+            });
+            toast.success(res.data?.message || "Video uploaded successfully!");
+            resetForm();
+        } catch (error) {
+            setIsUploading(false);
+            toast.error("Upload failed.");
+        } finally {
+            setIsUploading(false);
+        }
+    }
 
     return (
         <div className="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-2xl shadow-lg border">
@@ -164,7 +201,7 @@ const VideoUploader = ({ channelId, channelName }: any) => {
                                     Cancel
                                 </Button>
 
-                                <Button onClick={startUpload} disabled={isUploading}>
+                                <Button onClick={handleUpload} disabled={isUploading}>
                                     {isUploading ? "Uploading..." : "Upload"}
                                 </Button>
                             </>
