@@ -20,9 +20,11 @@ const RelatedVideos = ({ video }: any) => {
                     <div className="relative w-40 h-[94px] flex-shrink-0 rounded-lg overflow-hidden bg-black">
 
                         <video
-                            src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${v.filepath}`}
+                            src={`${process.env.NEXT_PUBLIC_BACKEND_URL}/${v.filepath.replace(/\\/g, "/")}`}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             muted
+                            preload="metadata"
+                            playsInline
                         />
 
                         {/* DURATION */}

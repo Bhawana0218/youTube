@@ -12,7 +12,7 @@ export default function Index() {
   const router = useRouter();
   const { id } = router.query;
 
-const [relatedVideo, setRelatedVideo] = useState<any[]>([])
+  const [relatedVideo, setRelatedVideo] = useState<any[]>([])
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,48 +33,6 @@ const [relatedVideo, setRelatedVideo] = useState<any[]>([])
 
   const stringid = Array.isArray(id) ? id[0] : id;
 
-  // const relatedVideo = [
-  //   {
-  //     id: "1",
-  //     videotitle: "Learn React in 30 Minutes",
-  //     filename: "react-tutorial.mp4",
-  //     filetype: "video/mp4",
-  //     filepath: "/videos/v.mp4",
-  //     filesize: "120MB",
-  //     videochannel: "Code Academy",
-  //     like: 12500,
-  //     Dislike: 500,
-  //     views: 245000,
-  //     uploader: "John Doe",
-  //     createdAt: "2025-04-20T10:30:00Z"
-  //   },
-  //   {
-  //     id: "2",
-  //     videotitle: "Next.js Full Course 2025",
-  //     filename: "nextjs-course.mp4",
-  //     filetype: "video/mp4",
-  //     filepath: "/videos/v.mp4",
-  //     filesize: "350MB",
-  //     videochannel: "Dev Simplified",
-  //     like: 45200,
-  //     Dislike: 1200,
-  //     views: 780000,
-  //     uploader: "Sarah Lee",
-  //     createdAt: "2025-04-18T08:15:00Z"
-  //   },
-  // ];
-
-  // if (loading) {
-  //   return (
-  //     <div>
-  //       Loading...
-  //     </div>
-  //   )
-  // }
-
-  // const video = useMemo(() => {
-  //   return relatedVideo.find((video: any) => video.id === stringid);
-  // }, [stringid]);
 
   const video = relatedVideo?.find(
     (vid: any) => vid._id === stringid
@@ -102,7 +60,10 @@ const [relatedVideo, setRelatedVideo] = useState<any[]>([])
       {/* RIGHT SIDE (IMPORTANT) */}
       <div className="lg:w-[350px] flex-shrink-0 lg:sticky lg:top-20 h-fit mr-20">
 
-        <RelatedVideos video={relatedVideo} />
+        {/* <RelatedVideos video={relatedVideo} /> */}
+        <RelatedVideos
+          video={relatedVideo.filter((v) => v._id !== video._id)}
+        />
 
       </div>
 
