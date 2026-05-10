@@ -1,7 +1,6 @@
 import Videoplayer from '@/components/Videoplayer';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import React, { useEffect, useMemo, useState } from 'react';
-
 import VideoInfo from '@/components/VideoInfo';
 import Comments from '@/components/Comments';
 import RelatedVideos from '@/components/RelatedVideos';
@@ -12,59 +11,54 @@ export default function Index() {
   const router = useRouter();
   const { id } = router.query;
 
-  const [relatedVideo, setRelatedVideo] = useState<any[]>([])
+  const [video, setVideo] = useState<any>(null);
+  const [relatedVideo, setRelatedVideo] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const videoId = Array.isArray(id) ? id[0] : id;
+
   useEffect(() => {
-    const fetchvideo = async () => {
+    if (!videoId) return;
+
+    const fetchData = async () => {
       try {
-        const res = await axiosInstance.get("/video/getall")
-        setRelatedVideo(res.data);
+        setLoading(true);
+        const videoRes = await axiosInstance.get(`/video/${videoId}`);
+        setVideo(videoRes.data);
+        const allRes = await axiosInstance.get("/video/getall");
+        setRelatedVideo(allRes.data);
+
       } catch (error) {
         console.log(error);
-
       } finally {
         setLoading(false);
       }
-    }
-    fetchvideo();
-  }, [])
+    };
 
+    fetchData();
+  }, [videoId]);
 
-  const stringid = Array.isArray(id) ? id[0] : id;
-
-
-  const video = relatedVideo?.find(
-    (vid: any) => vid._id === stringid
-  );
-
-  if (!router.isReady) return <p>Loading...</p>;
-  if (!video) return <p>Video Not Found</p>;
-
-
+  if (loading || !video) {
+    return <p className="p-4">Loading...</p>;
+  }
 
   return (
     <div className="max-w-[1700px] mx-auto flex flex-col lg:flex-row gap-6 p-4 lg:px-8">
 
-      {/* LEFT SIDE */}
+      {/* LEFT */}
       <div className="flex-1 lg:w-[70%]">
-
         <div className="flex flex-col gap-4">
           <Videoplayer video={video} />
           <VideoInfo video={video} />
-          <Comments videoId={id} />
+          <Comments videoId={videoId} />
         </div>
-
       </div>
 
-      {/* RIGHT SIDE (IMPORTANT) */}
+      {/* RIGHT */}
       <div className="lg:w-[350px] flex-shrink-0 lg:sticky lg:top-20 h-fit mr-20">
-
-        {/* <RelatedVideos video={relatedVideo} /> */}
         <RelatedVideos
-          video={relatedVideo.filter((v) => v._id !== video._id)}
+          video={relatedVideo.filter((v) => v._id !== videoId)}
         />
-
       </div>
 
     </div>

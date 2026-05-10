@@ -10,7 +10,7 @@ const historySchema = new mongoose.Schema(
 
         videoid: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "videofiles",
+            ref: "Videofiles",
             required: true,
         },
 

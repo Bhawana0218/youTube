@@ -15,7 +15,7 @@ const watchlaterSchema = new mongoose.Schema(
         },
 
         likedon: {
-            type: Date, deault: Date.now(),
+            type: Date, default: Date.now(),
 
         },
     },
@@ -24,4 +24,4 @@ const watchlaterSchema = new mongoose.Schema(
     }
 );
 
-export default mongoose.model("watchlater", watchalaterSchema);
+export default mongoose.model("watchlater", watchlaterSchema);

@@ -7,6 +7,8 @@ import mongoose from 'mongoose';
 import userRoutes from './routes/auth.js';
 import videoRoutes from './routes/video.js';
 import likeRoutes from './routes/like.js';
+import watchlaterRoutes from './routes/WatchLater.js';
+import historyRoutes from './routes/history.js';
 
 dotenv.config();
 const app=express();
@@ -31,6 +33,8 @@ app.get('/', (req, res) => {
 app.use('/user', userRoutes);
 app.use('/video', videoRoutes);
 app.use('/like', likeRoutes);
+app.use('/watchlater', watchlaterRoutes);
+app.use('/history', historyRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>{
