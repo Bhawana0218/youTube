@@ -81,7 +81,8 @@ export const getallWatchLaterVideo = async (req, res) => {
         })
             .populate({
                 path: "videoid",
-                model: "videofiles",
+                model: "Videofiles",
+                select: "videotitle videochannel views createdAt filepath"
             });
 
         return res.status(200).json(watchLaterVideos);

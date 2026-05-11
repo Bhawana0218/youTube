@@ -215,11 +215,12 @@ interface Video {
   videochannel?: string;
   views?: number;
   createdAt?: string;
+  filepath?: string;
 }
 
 interface HistoryItem {
   _id: string;
-  videoid: string | Video;
+  videoid: Video | string;
   viewer: string;
   createdAt: string;
 }
@@ -234,10 +235,8 @@ const HistoryContent = () => {
     try {
       setLoading(true);
 
-      const res = await axiosInstance.get(`/history/${user?._id}`);
-
-      // ✅ handle both possible backend shapes
-      const data = res.data?.data || res.data || [];
+      const res = await axiosInstance.get(`/history/${user?.id}`);
+      const data = res.data || [];
 
       setHistory(data);
 
@@ -250,15 +249,20 @@ const HistoryContent = () => {
   };
 
   useEffect(() => {
-    if (!user?._id) {
+    if (!user?.id) {
       setLoading(false);
       return;
     }
     loadHistory();
-  }, [user?._id]);
+  }, [user?.id]);
 
-  const handleRemoveHistory = (historyId: string) => {
-    setHistory((prev) => prev.filter((h) => h._id !== historyId));
+  const handleRemoveHistory = async (historyId: string) => {
+    try {
+      await axiosInstance.delete(`/history/${historyId}`);
+      setHistory((prev) => prev.filter((h) => h._id !== historyId));
+    } catch (error) {
+      console.log("Error removing history:", error);
+    }
   };
 
   // ---------------- UI STATES ----------------
@@ -300,15 +304,8 @@ const HistoryContent = () => {
 
       <div className="space-y-4">
         {history.map((item) => {
-
-          // ✅ normalize videoid (object OR string)
-          const video =
-            typeof item.videoid === "object" ? item.videoid : null;
-
-          const videoId =
-            typeof item.videoid === "string"
-              ? item.videoid
-              : item.videoid?._id;
+          const video = typeof item.videoid === "object" ? item.videoid : null;
+          const videoId = typeof item.videoid === "string" ? item.videoid : item.videoid._id;
 
           return (
             <div
@@ -318,8 +315,12 @@ const HistoryContent = () => {
 
               {/* Thumbnail */}
               <Link href={`/watch/${videoId}`} className="shrink-0">
-                <div className="w-40 md:w-52 aspect-video overflow-hidden rounded-lg bg-black">
-                  <div className="w-full h-full bg-gray-300" />
+                <div className="w-40 md:w-52 aspect-video overflow-hidden rounded-lg bg-black group">
+                  <video
+                    src={`${process.env.NEXT_PUBLIC_BACKEND_URL}/${video?.filepath?.replace(/\\/g, "/")}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                    muted
+                  />
                 </div>
               </Link>
 
@@ -332,7 +333,7 @@ const HistoryContent = () => {
                   </h3>
 
                   <p className="text-sm text-gray-500 mt-1">
-                    {video?.views?.toLocaleString() || 0} views •{" "}
+                    {video?.videochannel} • {video?.views?.toLocaleString() || 0} views •{" "}
                     {video?.createdAt
                       ? formatDistanceToNow(new Date(video.createdAt)) + " ago"
                       : "Recently"}

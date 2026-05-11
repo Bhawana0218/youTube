@@ -54,6 +54,7 @@ export const getallLikedVideo = async (req, res) => {
             .populate({
                 path: "videoid",
                 model: "Videofiles",
+                select: "videotitle videochannel views createdAt filepath"
             })
             .exec()
         return res.status(200).json(likevideo);

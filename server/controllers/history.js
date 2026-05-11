@@ -13,12 +13,6 @@ export const handlehistory = async (req, res) => {
         });
         if (existinghistory) {
          await History.findByIdAndDelete(existinghistory._id);
-            await Video.findByIdAndUpdate(
-                videoId,
-                {
-                    $inc: { History: -1 }
-                }
-            );
             return res.json({
                 history: false
             });
@@ -27,12 +21,6 @@ export const handlehistory = async (req, res) => {
                 viewer: userId,
                 videoid: videoId
             });
-            await Video.findByIdAndUpdate(
-                videoId,
-                {
-                    $inc: { History: 1 }
-                }
-            );
             return res.json({
                 history: true
             });
@@ -74,6 +62,28 @@ export const getallHistoryVideo = async (req, res) => {
             })
             .sort({ createdAt: -1 });
         return res.status(200).json(historyvideo);
+    } catch (error) {
+        console.log("Error:", error);
+        return res.status(500).json({
+            message: "Something went wrong. Please try again."
+        });
+    }
+};
+
+export const deleteHistory = async (req, res) => {
+    const { historyId } = req.params;
+    try {
+        const historyItem = await History.findById(historyId);
+        if (!historyItem) {
+            return res.status(404).json({
+                message: "History item not found"
+            });
+        }
+
+        await History.findByIdAndDelete(historyId);
+        return res.status(200).json({
+            message: "History item removed successfully"
+        });
     } catch (error) {
         console.log("Error:", error);
         return res.status(500).json({

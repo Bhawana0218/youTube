@@ -32,4 +32,17 @@ export const getallvideo = async (req, res) => {
         return res.status(500).json({ message: "Something went wrong. Please try again." });
 
     }
-}
+};
+
+export const getVideoById = async (req, res) => {
+    const { videoId } = req.params;
+    try {
+        const videoFile = await video.findById(videoId);
+        if (!videoFile) {
+            return res.status(404).json({ message: "Video not found" });
+        }
+        return res.status(200).json(videoFile);
+    } catch (error) {
+        return res.status(500).json({ message: "Something went wrong. Please try again." });
+    }
+};
