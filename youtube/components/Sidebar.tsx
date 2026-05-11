@@ -81,7 +81,7 @@ const Sidebar = () => {
         )}
 
       </nav>
-      <ChannelDialog isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} mode="create" />
+      <ChannelDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} mode="create" />
     </aside>
   );
 }

@@ -114,7 +114,10 @@ const Header = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Avatar className="cursor-pointer w-8 h-8">
-                  <AvatarImage src={user?.image} alt={user?.name} />
+                  <AvatarImage
+                    src={user?.image || "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?auto=format&fit=crop&w=150&q=80"}
+                    alt={user?.name || "User"}
+                  />
                   <AvatarFallback>
                     {user?.name?.charAt(0).toUpperCase()}
                   </AvatarFallback>
@@ -166,8 +169,8 @@ const Header = () => {
       </div>
 
       <ChannelDialog
-        isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
         mode="create"
       />
     </header>

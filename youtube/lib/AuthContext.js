@@ -5,6 +5,18 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { auth, provider } from "./firebase";
 import axiosInstance from "./axiosinstance";
 
+const DEFAULT_USER_IMAGE =
+    "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?auto=format&fit=crop&w=150&q=80";
+
+const normalizeUser = (userData) => {
+    if (!userData) return null;
+    if (userData._id && !userData.id) {
+        userData.id = userData._id;
+        delete userData._id;
+    }
+    return userData;
+};
+
 // Default Context Value
 const defaultValue = {
     user: null,
@@ -27,14 +39,15 @@ export const UserProvider = ({ children }) => {
         const storedUser = localStorage.getItem("user");
 
         if (storedUser) {
-            setUser(JSON.parse(storedUser));
+            setUser(normalizeUser(JSON.parse(storedUser)));
         }
         setLoading(false);
     }, []);
 
     const login = (userData) => {
-        setUser(userData);
-        localStorage.setItem("user", JSON.stringify(userData));
+        const normalizedUser = normalizeUser(userData);
+        setUser(normalizedUser);
+        localStorage.setItem("user", JSON.stringify(normalizedUser));
     };
 
     const logout = async () => {
@@ -57,9 +70,7 @@ export const UserProvider = ({ children }) => {
             const payload = {
                 email: firebaseUser.email,
                 name: firebaseUser.displayName,
-                image:
-                    firebaseUser.photoURL ||
-                    "https://i.pravatar.cc/150?img=5",
+                image: firebaseUser.photoURL || DEFAULT_USER_IMAGE,
             };
 
             const response = await axiosInstance.post(
@@ -90,7 +101,7 @@ export const UserProvider = ({ children }) => {
                             name: firebaseUser.displayName,
                             image:
                                 firebaseUser.photoURL ||
-                                "https://i.pravatar.cc/150?img=5",
+                                DEFAULT_USER_IMAGE,
                         };
 
                         const response = await axiosInstance.post(
