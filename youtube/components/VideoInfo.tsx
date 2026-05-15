@@ -15,18 +15,12 @@ import axiosInstance from '@/lib/axiosinstance';
 import { useUser } from '@/lib/AuthContext';
 
 const VideoInfo = ({ video }: any) => {
-
     const [likes, setLikes] = useState<number>(video.like || 0);
     const [dislikes, setDislikes] = useState<number>(video.dislike || 0);
-
     const [liked, setLiked] = useState(false);
     const [disliked, setDisliked] = useState(false);
-
     const [showFullDescription, setShowFullDescription] = useState(false);
-
-    // Watch Later State
     const [watchLater, setWatchLater] = useState(false);
-
     const { user } = useUser() as {
         user: {
             id: string;
@@ -43,21 +37,16 @@ const VideoInfo = ({ video }: any) => {
     };
 
     useEffect(() => {
-
         setLikes(video.like || 0);
         setDislikes(video.dislike || 0);
-
         setLiked(false);
         setDisliked(false);
-
         setShowFullDescription(false);
-
     }, [video]);
 
     useEffect(() => {
         const handleViews = async () => {
             if (!user) return;
-
             try {
                 await axiosInstance.post(`/history/${video._id}`, {
                     userId: user.id,
@@ -66,19 +55,13 @@ const VideoInfo = ({ video }: any) => {
                 console.log(error);
             }
         };
-
         handleViews();
     }, [video._id, user]);
 
-
     useEffect(() => {
-
         if (!video || !user) return;
-
         const checkWatchLater = async () => {
-
             try {
-
                 const res = await axiosInstance.get(
                     `/watchlater/check/${video._id}`,
                     {
@@ -87,121 +70,80 @@ const VideoInfo = ({ video }: any) => {
                         }
                     }
                 );
-
                 setWatchLater(res.data.saved);
-
             } catch (error) {
-
                 console.log(error);
             }
         };
-
         checkWatchLater();
-
     }, [video, user]);
 
     const handleShare = async () => {
-
         try {
-
             const videoUrl = `${window.location.origin}/watch/${video._id}`;
-
             await navigator.clipboard.writeText(videoUrl);
-
             alert("Video link copied!");
-
         } catch (error) {
-
             console.log(error);
         }
     };
 
     const handleDownload = async () => {
-
         try {
-
             const videoUrl =
                 `${process.env.NEXT_PUBLIC_BACKEND_URL}/${video?.filepath?.replace(/\\/g, "/")}`;
-
             const link = document.createElement("a");
-
             link.href = videoUrl;
-
             link.setAttribute("download", video.videotitle || "video");
-
             document.body.appendChild(link);
-
             link.click();
-
             document.body.removeChild(link);
-
         } catch (error) {
-
             console.log(error);
         }
     };
 
-
     const handleLike = async () => {
-
         if (!user) return;
-
         try {
-
             const res = await axiosInstance.post(
                 `/like/${video._id}`,
                 {
                     userId: user.id
                 }
             );
-
             if (res.data.liked) {
-
                 setLikes(prev => prev + 1);
                 setLiked(true);
-
-                // Remove dislike if active
                 if (disliked) {
                     setDislikes(prev => Math.max(prev - 1, 0));
                     setDisliked(false);
                 }
-
             } else {
-
                 setLikes(prev => Math.max(prev - 1, 0));
                 setLiked(false);
             }
-
         } catch (error) {
             console.log(error);
         }
     };
     const handleDislike = async () => {
-
         if (!user) return;
-
         try {
-
             const res = await axiosInstance.post(
                 `/dislike/${video._id}`,
                 {
                     userId: user.id
                 }
             );
-
             if (res.data.disliked) {
-
                 setDislikes(prev => prev + 1);
                 setDisliked(true);
-
-                // Remove like if active
                 if (liked) {
                     setLikes(prev => Math.max(prev - 1, 0));
                     setLiked(false);
                 }
-
             } else {
-
                 setDislikes(prev => Math.max(prev - 1, 0));
                 setDisliked(false);
             }
@@ -211,75 +153,50 @@ const VideoInfo = ({ video }: any) => {
         }
     };
     const handleWatchLater = async () => {
-
         if (!user) {
             alert("Please login first");
             return;
         }
-
         try {
-
             const res = await axiosInstance.post(
                 `/watchlater/${video._id}`,
                 {
                     userId: user.id
                 }
             );
-
             console.log(res.data);
-
-            // Toggle state directly
             setWatchLater(prev => !prev);
-
         } catch (error) {
-
             console.log(error);
         }
     };
-
     return (
-
         <div className="mt-4 space-y-4">
-
             <h1 className="text-xl font-bold line-clamp-2 leading-tight">
                 {video.videotitle}
             </h1>
-
-
-
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-
-                {/* LEFT SIDE */}
                 <div className="flex items-center gap-3">
-
                     <Avatar className="w-10 h-10">
                         <AvatarImage src="" />
                         <AvatarFallback>
                             {video.videochannel?.[0]}
                         </AvatarFallback>
                     </Avatar>
-
                     <div className="flex flex-col">
                         <span className="text-base text-black font-semibold leading-none">
                             {video.videochannel}
                         </span>
-
                         <span className="text-xs text-gray-500 mt-1">
                             1.2M subscribers
                         </span>
                     </div>
-
                     <Button className="ml-4 rounded-full bg-black hover:bg-zinc-800 text-white px-4 h-9 text-sm font-medium">
                         Subscribe
                     </Button>
-
                 </div>
-
                 <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
-
-                    {/* LIKE / DISLIKE */}
                     <div className="flex items-center bg-gray-100 rounded-full h-9">
-
                         <button
                             type='button'
                             onClick={handleLike}
@@ -288,13 +205,10 @@ const VideoInfo = ({ video }: any) => {
                             <ThumbsUp
                                 className={`w-5 h-5 ${liked ? "fill-black text-black" : ""}`}
                             />
-
                             <span className="text-sm text-black font-medium">
                                 {likes}
                             </span>
                         </button>
-
-
                         <button
                             type='button'
                             onClick={handleDislike}
@@ -304,21 +218,17 @@ const VideoInfo = ({ video }: any) => {
                                 className={`w-5 h-5 ${disliked ? "fill-black text-black" : ""}`}
                             />
                         </button>
-
                     </div>
-
                     <Button
                         onClick={handleShare}
                         variant="secondary"
                         className="rounded-full bg-gray-100 text-black hover:bg-gray-200 gap-2 h-9 px-4"
                     >
                         <Share2 className="w-5 h-5" />
-
                         <span className="text-sm font-medium">
                             Share
                         </span>
                     </Button>
-
                     <Button
                         type='button'
                         onClick={handleWatchLater}
@@ -329,15 +239,12 @@ const VideoInfo = ({ video }: any) => {
                                 : "bg-gray-100 text-black hover:bg-gray-200"
                             }`}
                     >
-
                         <Clock3
                             className={`w-5 h-5 ${watchLater ? "fill-white" : ""}`}
                         />
-
                         <span className="text-sm font-medium">
                             {watchLater ? "Saved" : "Watch later"}
                         </span>
-
                     </Button>
                     <Button
                         onClick={handleDownload}
@@ -345,7 +252,6 @@ const VideoInfo = ({ video }: any) => {
                         className="rounded-full text-black bg-gray-100 hover:bg-gray-200 gap-2 h-9 px-4 hidden md:flex"
                     >
                         <Download className="w-5 h-5" />
-
                         <span className="text-sm font-medium">
                             Download
                         </span>
@@ -357,28 +263,16 @@ const VideoInfo = ({ video }: any) => {
                     >
                         <MoreHorizontal className="w-5 h-5" />
                     </Button>
-
                 </div>
-
             </div>
 
-
-
-            {/* DESCRIPTION SECTION */}
             <div className="bg-gray-100 rounded-xl p-3 text-black hover:bg-gray-200 transition-colors group">
-
                 <div className="flex gap-2 text-sm font-bold mb-1">
-
                     <span>
                         {video.views?.toLocaleString()} views
                     </span>
-
                     <span>• 2 days ago</span>
-
                 </div>
-
-
-
                 <p
                     className={`text-sm whitespace-pre-wrap text-zinc-800 ${showFullDescription ? "" : "line-clamp-2"
                         }`}
@@ -387,8 +281,6 @@ const VideoInfo = ({ video }: any) => {
                     for building modern web applications. Don't forget to check out the related videos.
                 </p>
 
-
-
                 <button
                     type='button'
                     onClick={() => setShowFullDescription(prev => !prev)}
@@ -396,11 +288,8 @@ const VideoInfo = ({ video }: any) => {
                 >
                     {showFullDescription ? 'Show less' : 'Show more'}
                 </button>
-
             </div>
-
         </div>
-
     );
 }
 

@@ -71,3 +71,46 @@ export const deleteComment = async (req, res) => {
     });
   }
 };
+
+export const updateComment = async (req, res) => {
+  try {
+    const { commentid } = req.params;
+    const { commentbody, commnetbody } = req.body || {};
+
+    const nextBody = String(commentbody ?? commnetbody ?? "").trim();
+
+    if (!nextBody) {
+      return res.status(400).json({
+        success: false,
+        message: "Comment text is required",
+      });
+    }
+
+    const updated = await Comment.findByIdAndUpdate(
+      commentid,
+      {
+        commentbody: nextBody,
+        commnetbody: nextBody,
+      },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({
+        success: false,
+        message: "Comment not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      comment: updated,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error while updating comment",
+    });
+  }
+};
