@@ -43,7 +43,7 @@ export default function Index() {
   }
 
   return (
-    <div className="max-w-[1700px] mx-auto flex flex-col lg:flex-row gap-6 p-4 lg:px-8">
+    <div className="max-w-[1700px] mx-auto flex flex-col lg:flex-row gap-6 p-4 lg:px-8 mt-10">
 
       {/* LEFT */}
       <div className="flex-1 lg:w-[70%]">

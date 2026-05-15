@@ -7,7 +7,7 @@ const SubscriptionsPage = () => {
 
   return (
     <>
-      <div className="mb-6">
+      <div className="mb-6 mt-10">
         <h1 className="text-2xl font-semibold text-gray-900">Subscriptions</h1>
         <p className="text-sm text-gray-500">
           {user

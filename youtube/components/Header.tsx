@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button } from './ui/button';
 import { BellIcon, Menu, Mic, Search, User, VideoIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -34,31 +34,52 @@ const Header = () => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
 
-
-  const handleSearch = (e: React.ChangeEvent) => {
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
-
     }
   }
 
-  const handleKeypress = (e: React.KeyboardEvent) => {
+  const handleKeypress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleSearch(e as any);
     }
   }
 
+  const handleVoiceSearch = () => {
+    searchInputRef.current?.focus();
+  };
+
+  const handleRecord = () => {
+    if (!user) {
+      handlegooglesignin();
+      return;
+    }
+    router.push("/record");
+  };
+
+  const handleNotifications = () => {
+    router.push("/notifications");
+  };
+
+  const handleMenuToggle = () => {
+    setIsMobileMenuOpen((prev) => !prev);
+  };
+
   if (!mounted) return null;
 
   return (
-    <header className="flex flex-wrap items-center gap-3 px-4 py-3 bg-white shadow-sm sticky top-0 z-50">
+    <header className="fixed top-0 left-0 right-0 z-50 w-full bg-white/95 backdrop-blur-sm border-b border-slate-200 shadow-sm">
+      <div className="flex flex-wrap items-center gap-3 px-4 py-3">
 
       {/* LEFT */}
       <div className="flex items-center gap-3 shrink-0">
-        <Button variant="ghost" size="icon" className="rounded-full">
+        <Button variant="ghost" size="icon" className="rounded-full" onClick={handleMenuToggle}>
           <Menu className="w-6 h-6" />
         </Button>
 
@@ -78,6 +99,7 @@ const Header = () => {
 
           <div className="flex w-full">
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search"
               onKeyPress={handleKeypress}
@@ -91,7 +113,7 @@ const Header = () => {
             </button>
           </div>
 
-          <Button variant="ghost" size="icon" className="ml-3 rounded-full">
+          <Button variant="ghost" size="icon" className="ml-3 rounded-full" onClick={handleVoiceSearch}>
             <Mic className="h-5 w-5" />
           </Button>
 
@@ -103,11 +125,11 @@ const Header = () => {
 
         {user ? (
           <>
-            <Button variant="ghost" size="icon" className="rounded-full">
+            <Button variant="ghost" size="icon" className="rounded-full" onClick={handleRecord}>
               <VideoIcon className="w-6 h-6" />
             </Button>
 
-            <Button variant="ghost" size="icon" className="rounded-full">
+            <Button variant="ghost" size="icon" className="rounded-full" onClick={handleNotifications}>
               <BellIcon className="w-6 h-6" />
             </Button>
 
@@ -168,11 +190,37 @@ const Header = () => {
 
       </div>
 
+      {isMobileMenuOpen && (
+        <div className="fixed inset-x-0 top-16 z-40 bg-white border-t border-slate-200 shadow-lg md:hidden">
+          <nav className="flex flex-col gap-2 px-4 py-4">
+            <Link href="/" className="rounded-xl px-3 py-3 hover:bg-gray-100" onClick={() => setIsMobileMenuOpen(false)}>
+              Home
+            </Link>
+            <Link href="/explore" className="rounded-xl px-3 py-3 hover:bg-gray-100" onClick={() => setIsMobileMenuOpen(false)}>
+              Explore
+            </Link>
+            <Link href="/subscriptions" className="rounded-xl px-3 py-3 hover:bg-gray-100" onClick={() => setIsMobileMenuOpen(false)}>
+              Subscriptions
+            </Link>
+            <Link href="/history" className="rounded-xl px-3 py-3 hover:bg-gray-100" onClick={() => setIsMobileMenuOpen(false)}>
+              History
+            </Link>
+            <Link href="/liked" className="rounded-xl px-3 py-3 hover:bg-gray-100" onClick={() => setIsMobileMenuOpen(false)}>
+              Liked
+            </Link>
+            <Link href="/watch-later" className="rounded-xl px-3 py-3 hover:bg-gray-100" onClick={() => setIsMobileMenuOpen(false)}>
+              Watch Later
+            </Link>
+          </nav>
+        </div>
+      )}
+
       <ChannelDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         mode="create"
       />
+      </div>
     </header>
 
 

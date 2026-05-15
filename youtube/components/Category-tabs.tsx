@@ -39,7 +39,7 @@ const Category = () => {
                         className={`
                     whitespace-nowrap rounded-full px-5 py-2 text-sm font-medium transition-all duration-200
                     ${activeCategory === cat
-                                ? "bg-black text-white hover:bg-black"
+                                ? "bg-black text-white hover:text-white hover:bg-black"
                                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                             }
                 `}

@@ -5,26 +5,27 @@ import React, { Suspense } from "react";
 const Search = () => {
     const router = useRouter();
     const { q } = router.query;
+    const query = typeof q === "string" ? q : Array.isArray(q) ? q[0] : "";
 
     return (
         <>
             {/* SEARCH TITLE */}
-            {q && (
-                <div className="mb-6">
+            {query && (
+                <div className="mb-6 mt-10">
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
                         Search Results
                     </h1>
                     <p className="text-gray-600 mt-1">
                         Results for{" "}
                         <span className="font-semibold text-black">
-                            "{q}"
+                            "{query}"
                         </span>
                     </p>
                 </div>
             )}
 
             {/* EMPTY STATE */}
-            {!q && (
+            {!query && (
                 <div className="flex items-center justify-center h-[60vh] text-gray-500">
                     <p className="text-lg">
                         Start typing to search videos...
@@ -41,7 +42,7 @@ const Search = () => {
                 }
             >
                 <div className="grid gap-6">
-                    <SearchResult query={q || ""} />
+                    <SearchResult query={query} />
                 </div>
             </Suspense>
         </>

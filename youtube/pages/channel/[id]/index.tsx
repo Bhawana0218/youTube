@@ -131,7 +131,7 @@ const Channel = () => {
     ];
 
     return (
-        <main className="min-h-screen bg-[#f8f9fb]">
+        <main className="min-h-screen bg-[#f8f9fb] mt-8">
             <div className="max-w-[1450px] mx-auto px-4 md:px-6 py-6">
                 <section className="bg-white rounded-[32px] border border-gray-200 overflow-hidden shadow-sm">
                     <div className="h-[220px] md:h-[300px] w-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />

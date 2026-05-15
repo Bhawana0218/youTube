@@ -12,7 +12,7 @@ export default function App({ Component, pageProps }: AppProps) {
       <div className="min-h-screen bg-slate-50 text-slate-900">
         <Header />
         <div className="flex flex-col md:flex-row">
-          <aside className="hidden md:block md:w-72 shrink-0 border-r border-slate-200 bg-white">
+          <aside className="hidden md:block md:w-72 shrink-0 sticky top-16 self-start h-[calc(100vh-4rem)] overflow-y-auto border-r border-slate-200 bg-white">
             <Sidebar />
           </aside>
           <main className="flex-1 p-4 md:p-6 lg:p-8">

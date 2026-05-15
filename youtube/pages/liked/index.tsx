@@ -5,7 +5,7 @@ const Index = () => {
     return (
         <>
             {/* Page Title */}
-            <div className="mb-6">
+            <div className="mb-6 mt-10">
                 <h1 className="text-2xl font-semibold text-gray-900">
                    Watch Liked Videos
                 </h1>

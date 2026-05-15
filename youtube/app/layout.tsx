@@ -18,6 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "YouTube",
   description: "Explore what you want to see",
+  icons: [{ rel: "icon", url: "/favicon.avif", type: "image/avif" }],
 };
 
 export default function RootLayout({
@@ -33,15 +34,15 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-white text-black">
 
         <UserProvider>
-          <div className=" text-black bg-white">
+          <div className="text-black bg-white">
             <Header />
           </div>
-          <div className="flex flex-1">
-            <div className=" w-56 text-black bg-white">
+          <div className="flex flex-1 pt-16">
+            <div className="hidden md:block md:w-72 shrink-0">
               <Sidebar />
             </div>
 
-            <main className="flex-1 min-w-0 p-4 overflow-x-hidden">
+            <main className="flex-1 min-w-0 p-4 md:p-6 overflow-x-hidden">
               {children}
             </main>
           </div>

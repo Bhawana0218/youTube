@@ -2,7 +2,14 @@
 
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
-import { Home, Compass, PlaySquare, History, ThumbsUp, Clock} from 'lucide-react';
+import {
+  Home,
+  Compass,
+  PlaySquare,
+  History,
+  ThumbsUp,
+  Clock,
+} from 'lucide-react';
 import { Button } from './ui/button';
 import ChannelDialog from './ChannelDialog';
 import { useUser } from '@/lib/AuthContext';
@@ -30,58 +37,137 @@ const Sidebar = () => {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  const menuItems = [
+    {
+      name: 'Home',
+      icon: Home,
+      href: '/',
+    },
+    {
+      name: 'Explore',
+      icon: Compass,
+      href: '/explore',
+    },
+    {
+      name: 'Subscriptions',
+      icon: PlaySquare,
+      href: '/subscriptions',
+    },
+  ];
+
+  const libraryItems = [
+    {
+      name: 'History',
+      icon: History,
+      href: '/history',
+    },
+    {
+      name: 'Liked videos',
+      icon: ThumbsUp,
+      href: '/liked',
+    },
+    {
+      name: 'Watch later',
+      icon: Clock,
+      href: '/watch-later',
+    },
+  ];
+
   return (
-    <aside className="h-full bg-white px-2 py-4">
+    <aside className="fixed top-16 left-0 z-40 h-[calc(100vh-4rem)] w-72 overflow-y-auto border-r border-gray-200 bg-white px-3 py-5">
 
-      <nav className="flex flex-col gap-1">
+      <nav className="flex flex-col gap-6">
 
-        {/* ITEM */}
-        <Link href="/" className="flex items-center gap-4 px-4 py-2 rounded-lg hover:bg-gray-100 cursor-pointer">
-          <Home className="w-5 h-5" />
-          <span className="text-sm font-medium">Home</span>
-        </Link>
+        {/* MAIN MENU */}
+        <div className="space-y-1">
 
-        <Link href="/explore" className="flex items-center gap-4 px-4 py-2 rounded-lg hover:bg-gray-100 cursor-pointer">
-          <Compass className="w-5 h-5" />
-          <span className="text-sm">Explore</span>
-        </Link>
+          {menuItems.map((item, index) => {
+            const Icon = item.icon;
 
-        <Link href="/subscriptions" className="flex items-center gap-4 px-4 py-2 rounded-lg hover:bg-gray-100 cursor-pointer">
-          <PlaySquare className="w-5 h-5" />
-          <span className="text-sm">Subscriptions</span>
-        </Link>
+            return (
+              <Link
+                key={index}
+                href={item.href}
+                className="group flex items-center gap-4 rounded-xl px-4 py-3 transition-all duration-200 hover:bg-gray-100"
+              >
+                <Icon className="h-5 w-5 text-gray-700 transition-colors duration-200 group-hover:text-black" />
 
-        {/* Divider */}
-        <div className="border-t my-2" />
+                <span className="text-sm font-medium text-gray-800">
+                  {item.name}
+                </span>
+              </Link>
+            );
+          })}
 
-        <Link href="/history" className="flex items-center gap-4 px-4 py-2 rounded-lg hover:bg-gray-100">
-          <History className="w-5 h-5" />
-          <span className="text-sm">History</span>
-        </Link>
+        </div>
 
-        <Link href="/liked" className="flex items-center gap-4 px-4 py-2 rounded-lg hover:bg-gray-100">
-          <ThumbsUp className="w-5 h-5" />
-          <span className="text-sm">Liked videos</span>
-        </Link>
+        {/* DIVIDER */}
+        <div className="border-t border-gray-200" />
 
-        <Link href="/watch-later" className="flex items-center gap-4 px-4 py-2 rounded-lg hover:bg-gray-100">
-          <Clock className="w-5 h-5" />
-          <span className="text-sm">Watch later</span>
-        </Link>
+        {/* LIBRARY */}
+        <div>
 
-        {user?.channelname ? (
-          <Link href={`/channel/${user.id}`} className="flex items-center gap-4 px-4 py-2 rounded-lg hover:bg-gray-100">
-            <span className="text-sm">Your Channel</span>
-          </Link>
-        ) : (
-          <div className='px-2 py-1.5'>
-            <Button className='w-full' variant="outline" size='sm'
-              onClick={() => setIsDialogOpen(true)}>Create Channel</Button>
+          <h3 className="px-4 pb-2 text-sm font-semibold text-gray-500">
+            Library
+          </h3>
+
+          <div className="space-y-1">
+
+            {libraryItems.map((item, index) => {
+              const Icon = item.icon;
+
+              return (
+                <Link
+                  key={index}
+                  href={item.href}
+                  className="group flex items-center gap-4 rounded-xl px-4 py-3 transition-all duration-200 hover:bg-gray-100"
+                >
+                  <Icon className="h-5 w-5 text-gray-700 transition-colors duration-200 group-hover:text-black" />
+
+                  <span className="text-sm font-medium text-gray-800">
+                    {item.name}
+                  </span>
+                </Link>
+              );
+            })}
+
           </div>
-        )}
+
+        </div>
+
+        {/* DIVIDER */}
+        <div className="border-t border-gray-200" />
+
+        {/* CHANNEL SECTION */}
+        <div className="px-2">
+
+          {user?.channelname ? (
+            <Link
+              href={`/channel/${user.id}`}
+              className="flex items-center justify-center rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-800 transition-all duration-200 hover:border-gray-400 hover:bg-gray-100"
+            >
+              Your Channel
+            </Link>
+          ) : (
+            <Button
+              className="h-11 w-full rounded-xl border border-gray-300 bg-white text-sm font-medium text-gray-800 shadow-none transition-all duration-200 hover:bg-gray-100"
+              variant="outline"
+              onClick={() => setIsDialogOpen(true)}
+            >
+              Create Channel
+            </Button>
+          )}
+
+        </div>
 
       </nav>
-      <ChannelDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} mode="create" />
+
+      <ChannelDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        mode="create"
+      />
+
     </aside>
   );
 }
