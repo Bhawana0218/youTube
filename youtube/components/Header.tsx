@@ -93,7 +93,6 @@ const Header = () => {
         </Link>
       </div>
 
-      {/* CENTER (IMPORTANT FIX) */}
       <form onSubmit={handleSearch} className="flex flex-1 justify-center w-full min-w-0">
         <div className="flex items-center w-full max-w-xl">
 
@@ -120,7 +119,6 @@ const Header = () => {
         </div>
       </form>
 
-      {/* RIGHT (FIXED TO FAR RIGHT) */}
       <div className="flex items-center gap-3 ml-auto shrink-0">
 
         {user ? (
@@ -176,6 +174,14 @@ const Header = () => {
                   <Link href="/watch-later">Watch Later</Link>
                 </DropdownMenuItem>
 
+                <DropdownMenuItem asChild>
+                  <Link href="/downloads">Downloads</Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem asChild>
+                  <Link href="/premium">Premium</Link>
+                </DropdownMenuItem>
+
                 <DropdownMenuItem onClick={logout}>Sign Out</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -210,6 +216,12 @@ const Header = () => {
             </Link>
             <Link href="/watch-later" className="rounded-xl px-3 py-3 hover:bg-gray-100" onClick={() => setIsMobileMenuOpen(false)}>
               Watch Later
+            </Link>
+            <Link href="/downloads" className="rounded-xl px-3 py-3 hover:bg-gray-100" onClick={() => setIsMobileMenuOpen(false)}>
+              Downloads
+            </Link>
+            <Link href="/premium" className="rounded-xl px-3 py-3 hover:bg-gray-100" onClick={() => setIsMobileMenuOpen(false)}>
+              Premium
             </Link>
           </nav>
         </div>

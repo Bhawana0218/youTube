@@ -5,7 +5,6 @@ import VideoCard from './VideoCard';
 import axiosInstance from '@/lib/axiosinstance';
 const VideoGrid = () => {
 
-    // const [VideoGrids, setVideoGrids] = useState<any>(null)
     const [VideoGrids, setVideoGrids] = useState<any[]>([])
     const [loading, setLoading] = useState(true);
 

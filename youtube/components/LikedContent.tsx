@@ -99,8 +99,13 @@ const LikedContent = () => {
 
             <Button
                 onClick={() => {
-                    const firstVideo = liked[0];
-                    const videoId = typeof firstVideo.videoid === 'string' ? firstVideo.videoid : firstVideo.videoid._id;
+                    const firstPlayable = liked.find((item) => {
+                        const id = typeof item.videoid === 'string' ? item.videoid : item.videoid?._id;
+                        return Boolean(id);
+                    });
+                    const videoId = firstPlayable
+                        ? (typeof firstPlayable.videoid === 'string' ? firstPlayable.videoid : firstPlayable.videoid?._id)
+                        : '';
                     if (videoId) {
                         window.location.href = `/watch/${videoId}`;
                     }
@@ -113,8 +118,12 @@ const LikedContent = () => {
 
             <div className="space-y-4">
                 {liked.map((item) => {
-                    const video = typeof item.videoid === 'object' ? item.videoid : null;
-                    const videoId = typeof item.videoid === 'string' ? item.videoid : item.videoid._id;
+                    const video = typeof item.videoid === 'object' && item.videoid !== null ? item.videoid : null;
+                    const videoId = typeof item.videoid === 'string' ? item.videoid : item.videoid?._id;
+
+                    if (!videoId) {
+                        return null;
+                    }
 
                     return (
                         <div

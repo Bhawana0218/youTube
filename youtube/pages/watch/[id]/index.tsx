@@ -1,21 +1,28 @@
-import Videoplayer from '@/components/Videoplayer';
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import VideoInfo from '@/components/VideoInfo';
+'use client';
+
 import Comments from '@/components/Comments';
 import RelatedVideos from '@/components/RelatedVideos';
+import VideoInfo from '@/components/VideoInfo';
+import Videoplayer from '@/components/Videoplayer';
 import axiosInstance from '@/lib/axiosinstance';
+import { useParams } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
 
-export default function Index() {
+type VideoItem = {
+  _id?: string;
+};
 
-  const router = useRouter();
-  const { id } = router.query;
+export default function WatchPage() {
+  const params = useParams<{ id: string | string[] }>();
+  const idParam = params?.id;
+  const videoId = useMemo(
+    () => (Array.isArray(idParam) ? idParam[0] : idParam),
+    [idParam]
+  );
 
-  const [video, setVideo] = useState<any>(null);
-  const [relatedVideo, setRelatedVideo] = useState<any[]>([]);
+  const [video, setVideo] = useState<Record<string, unknown> | null>(null);
+  const [relatedVideo, setRelatedVideo] = useState<VideoItem[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const videoId = Array.isArray(id) ? id[0] : id;
 
   useEffect(() => {
     if (!videoId) return;
@@ -25,11 +32,12 @@ export default function Index() {
         setLoading(true);
         const videoRes = await axiosInstance.get(`/video/${videoId}`);
         setVideo(videoRes.data);
-        const allRes = await axiosInstance.get("/video/getall");
-        setRelatedVideo(allRes.data);
 
+        const allRes = await axiosInstance.get('/video/getall');
+        setRelatedVideo(allRes.data || []);
       } catch (error) {
-        console.log(error);
+        console.log('Error loading watch page:', error);
+        setVideo(null);
       } finally {
         setLoading(false);
       }
@@ -38,14 +46,16 @@ export default function Index() {
     fetchData();
   }, [videoId]);
 
-  if (loading || !video) {
+  if (loading) {
     return <p className="p-4">Loading...</p>;
+  }
+
+  if (!video) {
+    return <p className="p-4">Video not found.</p>;
   }
 
   return (
     <div className="max-w-[1700px] mx-auto flex flex-col lg:flex-row gap-6 p-4 lg:px-8 mt-10">
-
-      {/* LEFT */}
       <div className="flex-1 lg:w-[70%]">
         <div className="flex flex-col gap-4">
           <Videoplayer video={video} />
@@ -53,14 +63,9 @@ export default function Index() {
           <Comments videoId={videoId} />
         </div>
       </div>
-
-      {/* RIGHT */}
       <div className="lg:w-[350px] flex-shrink-0 lg:sticky lg:top-20 h-fit mr-20">
-        <RelatedVideos
-          video={relatedVideo.filter((v) => v._id !== videoId)}
-        />
+        <RelatedVideos video={relatedVideo.filter((v) => v?._id !== videoId)} />
       </div>
-
     </div>
   );
 }

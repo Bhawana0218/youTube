@@ -1,6 +1,6 @@
 "use client";
 
-import { signInWithPopup, signOut } from "firebase/auth";
+import { signInWithPopup, signInWithRedirect, signOut } from "firebase/auth";
 import { createContext, useContext, useEffect, useState } from "react";
 import { auth, provider } from "./firebase";
 import axiosInstance from "./axiosinstance";
@@ -87,6 +87,15 @@ export const UserProvider = ({ children }) => {
 
             login(userData);
         } catch (error) {
+            const errorCode = error?.code || "";
+            if (errorCode === "auth/popup-blocked") {
+                try {
+                    await signInWithRedirect(auth, provider);
+                    return;
+                } catch (redirectError) {
+                    console.error("Error during Google redirect sign-in:", redirectError);
+                }
+            }
             console.error("Error during Google sign-in:", error);
         }
     };

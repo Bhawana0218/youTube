@@ -2,7 +2,7 @@
 
 import { useUser } from '@/lib/AuthContext';
 import axiosInstance from '@/lib/axiosinstance';
-import { MoreVertical, Pencil, ThumbsDown, ThumbsUp, Trash2 } from 'lucide-react';
+import { Languages, MoreVertical, Pencil, ThumbsDown, ThumbsUp, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 type RawComment = {
@@ -20,6 +20,10 @@ type RawComment = {
   commentedOn?: string;
   userImage?: string;
   likes?: number;
+  dislikes?: number;
+  city?: string;
+  likedBy?: string[];
+  dislikedBy?: string[];
 };
 
 type NormalizedComment = {
@@ -31,6 +35,9 @@ type NormalizedComment = {
   authorImage: string;
   commentedOn: string;
   likes: number;
+  dislikes: number;
+  city: string;
+  isPending?: boolean;
 };
 
 type UserType = {
@@ -41,6 +48,7 @@ type UserType = {
 };
 
 const DEFAULT_AVATAR = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+const PLAIN_TEXT_REGEX = /^[\p{L}\p{N}\s]+$/u;
 
 const getRelativeTime = (value: string) => {
   if (!value) return 'recently';
@@ -86,6 +94,8 @@ const normalizeComment = (item: RawComment, index: number): NormalizedComment | 
     authorImage: item.userImage || userRef?.profilepicture || userRef?.image || DEFAULT_AVATAR,
     commentedOn,
     likes: Number(item.likes || 0),
+    dislikes: Number(item.dislikes || 0),
+    city: String(item.city || 'Unknown City'),
   };
 };
 
@@ -106,6 +116,41 @@ const extractComments = (payload: unknown): RawComment[] => {
   return [];
 };
 
+const languageOptions = [
+  { code: 'en', label: 'English' },
+  { code: 'hi', label: 'Hindi' },
+  { code: 'es', label: 'Spanish' },
+  { code: 'fr', label: 'French' },
+  { code: 'de', label: 'German' },
+  { code: 'ar', label: 'Arabic' },
+  { code: 'ja', label: 'Japanese' },
+  { code: 'ko', label: 'Korean' },
+  { code: 'bn', label: 'Bengali' },
+  { code: 'ta', label: 'Tamil' },
+  { code: 'te', label: 'Telugu' },
+  { code: 'mr', label: 'Marathi' },
+  { code: 'ur', label: 'Urdu' },
+];
+
+const extractErrorMessage = (error: unknown, fallback: string) => {
+  if (
+    error &&
+    typeof error === 'object' &&
+    'response' in error &&
+    error.response &&
+    typeof error.response === 'object' &&
+    'data' in error.response &&
+    error.response.data &&
+    typeof error.response.data === 'object' &&
+    'message' in error.response.data &&
+    typeof error.response.data.message === 'string'
+  ) {
+    return error.response.data.message;
+  }
+
+  return fallback;
+};
+
 const Comments = ({ videoId }: { videoId?: string }) => {
   const { user } = useUser() as { user: UserType | null };
 
@@ -116,6 +161,10 @@ const Comments = ({ videoId }: { videoId?: string }) => {
   const [activeMenu, setActiveMenu] = useState('');
   const [editingId, setEditingId] = useState('');
   const [editingText, setEditingText] = useState('');
+  const [targetLang, setTargetLang] = useState('en');
+  const [translatedMap, setTranslatedMap] = useState<Record<string, string>>({});
+  const [translationLoading, setTranslationLoading] = useState<Record<string, boolean>>({});
+  const [cityName, setCityName] = useState('Unknown City');
 
   const viewerName = user?.channelname || user?.name || 'You';
   const viewerAvatar = user?.image || DEFAULT_AVATAR;
@@ -151,9 +200,82 @@ const Comments = ({ videoId }: { videoId?: string }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoId]);
 
+  useEffect(() => {
+    const detectCity = async () => {
+      const findByCoordinates = async (lat: number, lon: number) => {
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lon))}`
+          );
+          if (!response.ok) return '';
+
+          const data = await response.json();
+          return String(
+            data?.address?.city ||
+            data?.address?.town ||
+            data?.address?.village ||
+            ''
+          ).trim();
+        } catch (error) {
+          console.log('Reverse geocode failed:', error);
+          return '';
+        }
+      };
+
+      try {
+        if (typeof window !== 'undefined' && navigator.geolocation) {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: false,
+              timeout: 5000,
+              maximumAge: 300000,
+            });
+          });
+
+          const geolocationCity = await findByCoordinates(
+            position.coords.latitude,
+            position.coords.longitude
+          );
+
+          if (geolocationCity) {
+            setCityName(geolocationCity);
+            return;
+          }
+        }
+      } catch (error) {
+        console.log('Geolocation city lookup failed:', error);
+      }
+
+      try {
+        const response = await fetch('https://ipapi.co/json/');
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const nextCity = String(data?.city || '').trim();
+        if (nextCity) {
+          setCityName(nextCity);
+        }
+      } catch (error) {
+        console.log('City lookup failed:', error);
+      }
+    };
+
+    detectCity();
+  }, []);
+
+  const isValidComment = (value: string) => {
+    const text = value.trim();
+    return Boolean(text) && PLAIN_TEXT_REGEX.test(text);
+  };
+
   const handleSubmit = async () => {
     const body = newComment.trim();
     if (!body || !videoId) return;
+
+    if (!isValidComment(body)) {
+      alert('Special characters are not allowed in comments. Use letters, numbers, and spaces only.');
+      return;
+    }
 
     if (!user) {
       alert('Please login to comment');
@@ -169,6 +291,9 @@ const Comments = ({ videoId }: { videoId?: string }) => {
       authorImage: viewerAvatar,
       commentedOn: new Date().toISOString(),
       likes: 0,
+      dislikes: 0,
+      city: cityName,
+      isPending: true,
     };
 
     setComments((prev) => [localDraft, ...prev]);
@@ -182,6 +307,7 @@ const Comments = ({ videoId }: { videoId?: string }) => {
         commentbody: body,
         commnetbody: body,
         usercommented: viewerName,
+        city: cityName,
         commentedon: new Date().toISOString(),
       };
 
@@ -196,12 +322,16 @@ const Comments = ({ videoId }: { videoId?: string }) => {
   };
 
   const handleDelete = async (id: string) => {
+    if (!user?.id) return;
+
     const previous = comments;
     setComments((prev) => prev.filter((item) => item.id !== id));
     setActiveMenu('');
 
     try {
-      await axiosInstance.delete(`/comment/delete/${id}`);
+      await axiosInstance.delete(`/comment/delete/${id}`, {
+        data: { userId: user.id },
+      });
     } catch (error) {
       console.log('Delete comment error:', error);
       setComments(previous);
@@ -221,13 +351,21 @@ const Comments = ({ videoId }: { videoId?: string }) => {
 
   const saveEdit = async (id: string) => {
     const body = editingText.trim();
-    if (!body) return;
+    if (!body || !user?.id) return;
+
+    if (!isValidComment(body)) {
+      alert('Special characters are not allowed in comments. Use letters, numbers, and spaces only.');
+      return;
+    }
 
     const previous = comments;
     setComments((prev) => prev.map((item) => (item.id === id ? { ...item, body } : item)));
 
     try {
-      await axiosInstance.put(`/comment/update/${id}`, { commentbody: body });
+      await axiosInstance.put(`/comment/update/${id}`, {
+        commentbody: body,
+        userId: user.id,
+      });
       cancelEdit();
     } catch (error) {
       console.log('Edit comment error:', error);
@@ -235,9 +373,81 @@ const Comments = ({ videoId }: { videoId?: string }) => {
     }
   };
 
+  const handleReaction = async (commentId: string, reaction: 'like' | 'dislike') => {
+    if (!user?.id) {
+      alert('Please login to react on comments.');
+      return;
+    }
+    if (commentId.startsWith('temp-')) {
+      alert('Please wait for your comment to finish posting.');
+      return;
+    }
+
+    const targetComment = comments.find((item) => item.id === commentId);
+    if (!targetComment) return;
+
+    if (reaction === 'dislike' && targetComment.userId === user.id) {
+      alert('You cannot dislike your own comment.');
+      return;
+    }
+
+    try {
+      const response = await axiosInstance.post(`/comment/react/${commentId}`, {
+        userId: user.id,
+        reaction,
+      });
+
+      if (response.data?.deleted) {
+        setComments((prev) => prev.filter((comment) => comment.id !== commentId));
+        return;
+      }
+
+      const updated = normalizeComment(response.data?.comment || {}, 0);
+      if (!updated) return;
+
+      setComments((prev) => prev.map((item) => (item.id === commentId ? updated : item)));
+    } catch (error) {
+      alert(extractErrorMessage(error, 'Unable to react on this comment right now.'));
+      console.log('React comment error:', error);
+    }
+  };
+
+  const handleTranslate = async (commentId: string) => {
+    if (commentId.startsWith('temp-')) {
+      alert('Please wait for your comment to finish posting.');
+      return;
+    }
+
+    if (translatedMap[commentId]) {
+      setTranslatedMap((prev) => {
+        const next = { ...prev };
+        delete next[commentId];
+        return next;
+      });
+      return;
+    }
+
+    setTranslationLoading((prev) => ({ ...prev, [commentId]: true }));
+
+    try {
+      const response = await axiosInstance.post(`/comment/translate/${commentId}`, {
+        targetLang,
+      });
+
+      const translatedText = String(response.data?.translatedText || '').trim();
+      if (!translatedText) return;
+
+      setTranslatedMap((prev) => ({ ...prev, [commentId]: translatedText }));
+    } catch (error) {
+      console.log('Translate comment error:', error);
+    } finally {
+      setTranslationLoading((prev) => ({ ...prev, [commentId]: false }));
+    }
+  };
+
   return (
     <section className="mt-6 w-full text-zinc-900 dark:text-zinc-100">
-      <div className="mb-6 flex items-center gap-4">
+      <div className="mb-6 flex flex-wrap items-center gap-4">
         <h2 className="text-xl font-semibold tracking-tight">{commentCountLabel}</h2>
         <button
           type="button"
@@ -245,6 +455,21 @@ const Comments = ({ videoId }: { videoId?: string }) => {
         >
           Top comments
         </button>
+        <div className="ml-auto flex items-center gap-2 rounded-full border border-zinc-200 px-3 py-1.5 dark:border-zinc-700">
+          <Languages size={14} />
+          <span className="text-xs text-zinc-600 dark:text-zinc-300">Translate to</span>
+          <select
+            value={targetLang}
+            onChange={(e) => setTargetLang(e.target.value)}
+            className="bg-transparent text-xs outline-none"
+          >
+            {languageOptions.map((lang) => (
+              <option key={lang.code} value={lang.code} className="text-black">
+                {lang.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="mb-8 flex gap-3">
@@ -299,6 +524,7 @@ const Comments = ({ videoId }: { videoId?: string }) => {
             const isOwner = Boolean(user?.id) && user?.id === comment.userId;
             const menuOpen = activeMenu === comment.id;
             const isEditing = editingId === comment.id;
+            const translatedText = translatedMap[comment.id];
 
             return (
               <article key={comment.id} className="group flex gap-3">
@@ -310,9 +536,18 @@ const Comments = ({ videoId }: { videoId?: string }) => {
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">{comment.authorName}</span>
                         <span className="text-xs text-zinc-500 dark:text-zinc-400">{getRelativeTime(comment.commentedOn)}</span>
+                        <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                          {comment.city}
+                        </span>
                       </div>
 
                       {!isEditing && <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-zinc-900 dark:text-zinc-100">{comment.body}</p>}
+
+                      {!isEditing && translatedText && (
+                        <p className="mt-2 rounded-xl bg-sky-50 px-3 py-2 text-sm text-sky-900 dark:bg-sky-900/30 dark:text-sky-200">
+                          {translatedText}
+                        </p>
+                      )}
 
                       {isEditing && (
                         <div className="mt-2">
@@ -380,6 +615,8 @@ const Comments = ({ videoId }: { videoId?: string }) => {
                     <div className="mt-2 flex items-center gap-1">
                       <button
                         type="button"
+                        onClick={() => handleReaction(comment.id, 'like')}
+                        disabled={Boolean(comment.isPending)}
                         className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
                       >
                         <ThumbsUp size={14} />
@@ -387,15 +624,24 @@ const Comments = ({ videoId }: { videoId?: string }) => {
                       </button>
                       <button
                         type="button"
-                        className="rounded-full p-1 text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-                    >
+                        onClick={() => handleReaction(comment.id, 'dislike')}
+                        disabled={Boolean(comment.isPending)}
+                        className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                      >
                         <ThumbsDown size={14} />
+                        <span>{comment.dislikes}</span>
                       </button>
                       <button
                         type="button"
-                        className="rounded-full px-2 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                        onClick={() => handleTranslate(comment.id)}
+                        disabled={translationLoading[comment.id]}
+                        className="rounded-full px-2 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-100 disabled:cursor-not-allowed dark:text-zinc-300 dark:hover:bg-zinc-800"
                       >
-                        Reply
+                        {translationLoading[comment.id]
+                          ? 'Translating...'
+                          : translatedText
+                            ? 'Show original'
+                            : 'Translate'}
                       </button>
                     </div>
                   )}

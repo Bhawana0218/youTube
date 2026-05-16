@@ -15,11 +15,9 @@ const Channeltabs = () => {
 
     return (
         <div className="w-full border-b border-gray-200 bg-white">
-            {/* Tabs container */}
             <div className="flex items-center gap-2 overflow-x-auto px-4 py-3 scrollbar-hide">
                 {tabs.map((tab) => {
                     const isActive = activeTab === tab.id;
-
                     return (
                         <Button
                             key={tab.id}

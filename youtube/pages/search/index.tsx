@@ -9,7 +9,6 @@ const Search = () => {
 
     return (
         <>
-            {/* SEARCH TITLE */}
             {query && (
                 <div className="mb-6 mt-10">
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
@@ -23,8 +22,6 @@ const Search = () => {
                     </p>
                 </div>
             )}
-
-            {/* EMPTY STATE */}
             {!query && (
                 <div className="flex items-center justify-center h-[60vh] text-gray-500">
                     <p className="text-lg">
@@ -32,8 +29,6 @@ const Search = () => {
                     </p>
                 </div>
             )}
-
-            {/* RESULTS */}
             <Suspense
                 fallback={
                     <div className="flex items-center justify-center h-40 text-gray-500">

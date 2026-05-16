@@ -13,8 +13,10 @@ import {
 
 import axiosInstance from '@/lib/axiosinstance';
 import { useUser } from '@/lib/AuthContext';
+import { useRouter } from 'next/navigation';
 
 const VideoInfo = ({ video }: any) => {
+    const router = useRouter();
     const [likes, setLikes] = useState<number>(video.like || 0);
     const [dislikes, setDislikes] = useState<number>(video.dislike || 0);
     const [liked, setLiked] = useState(false);
@@ -28,6 +30,7 @@ const VideoInfo = ({ video }: any) => {
             image: string;
             email?: string;
             channelname?: string;
+            isPremium?: boolean;
         } | null;
 
         loading: boolean;
@@ -89,17 +92,45 @@ const VideoInfo = ({ video }: any) => {
     };
 
     const handleDownload = async () => {
+        if (!user?.id) {
+            alert("Please login first");
+            return;
+        }
+
         try {
-            const videoUrl =
-                `${process.env.NEXT_PUBLIC_BACKEND_URL}/${video?.filepath?.replace(/\\/g, "/")}`;
+            const res = await axiosInstance.post("/download/request", {
+                userId: user.id,
+                videoId: video._id,
+            });
+
+            const relativeUrl = String(res.data?.downloadUrl || "");
+            const baseUrl = String(process.env.NEXT_PUBLIC_BACKEND_URL || "").replace(/\/$/, "");
+            const normalizedRelative = relativeUrl.startsWith("/") ? relativeUrl : `/${relativeUrl}`;
+            const videoUrl = `${baseUrl}${normalizedRelative}`;
+
             const link = document.createElement("a");
             link.href = videoUrl;
             link.setAttribute("download", video.videotitle || "video");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+
+            if (res.data?.isPremium !== true && typeof res.data?.remainingToday === "number") {
+                alert(`Download complete. Free downloads left today: ${res.data.remainingToday}`);
+            }
         } catch (error) {
+            const err: any = error;
+            if (err?.response?.status === 403 && err?.response?.data?.requiresPremium) {
+                const proceed = window.confirm(
+                    "You already used your free download for today. Upgrade to Premium for unlimited downloads. Go to Premium page now?"
+                );
+                if (proceed) {
+                    router.push("/premium");
+                }
+                return;
+            }
             console.log(error);
+            alert("Unable to download video right now.");
         }
     };
 

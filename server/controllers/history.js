@@ -61,7 +61,17 @@ export const getallHistoryVideo = async (req, res) => {
                 select: "videotitle videochannel views createdAt filepath"
             })
             .sort({ createdAt: -1 });
-        return res.status(200).json(historyvideo);
+
+        const validHistory = historyvideo.filter((item) => Boolean(item.videoid));
+        const staleHistoryIds = historyvideo
+            .filter((item) => !item.videoid)
+            .map((item) => item._id);
+
+        if (staleHistoryIds.length > 0) {
+            await History.deleteMany({ _id: { $in: staleHistoryIds } });
+        }
+
+        return res.status(200).json(validHistory);
     } catch (error) {
         console.log("Error:", error);
         return res.status(500).json({

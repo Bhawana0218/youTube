@@ -15,13 +15,36 @@ const commentSchema = new mongoose.Schema(
 
         commnetbody: {
             type: String,
+            trim: true,
+        },
+        commentbody: {
+            type: String,
+            trim: true,
         },
         usercommented: {
             type: String
         },
-        
+        city: {
+            type: String,
+            default: "Unknown City",
+            trim: true,
+        },
+        likedBy: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User",
+            },
+        ],
+        dislikedBy: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User",
+            },
+        ],
+
         commentedon: {
-            type: Date, deault: Date.now(),
+            type: Date,
+            default: Date.now,
 
         },
     },

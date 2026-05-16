@@ -122,7 +122,6 @@ const VideoUploader = ({ channelId, channelName }: any) => {
         <div className="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-2xl shadow-lg border">
             <h2 className="text-2xl font-bold mb-6">Upload a Video</h2>
 
-            {/* Upload Box */}
             {!videoFile ? (
                 <div
                     onClick={() => fileInputRef.current?.click()}
@@ -145,7 +144,6 @@ const VideoUploader = ({ channelId, channelName }: any) => {
                 </div>
             ) : (
                 <div className="space-y-5">
-                    {/* File Info */}
                     <div className="flex items-center justify-between p-4 border rounded-lg">
                         <div className="flex items-center gap-3">
                             <FileVideo className="text-blue-500" />
@@ -171,7 +169,6 @@ const VideoUploader = ({ channelId, channelName }: any) => {
                         )}
                     </div>
 
-                    {/* Title */}
                     <div>
                         <Label htmlFor="title">Title</Label>
                         <Input
@@ -181,8 +178,6 @@ const VideoUploader = ({ channelId, channelName }: any) => {
                             placeholder="Enter video title"
                         />
                     </div>
-
-                    {/* Progress */}
                     {isUploading && (
                         <div className="space-y-2 h-8">
                             <div className="flex justify-between text-sm">
@@ -193,7 +188,6 @@ const VideoUploader = ({ channelId, channelName }: any) => {
                         </div>
                     )}
 
-                    {/* Buttons */}
                     <div className="flex gap-3">
                         {!uploadComplete && (
                             <>

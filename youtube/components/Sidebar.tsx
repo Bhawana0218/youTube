@@ -9,6 +9,8 @@ import {
   History,
   ThumbsUp,
   Clock,
+  Download,
+  Crown,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import ChannelDialog from './ChannelDialog';
@@ -71,14 +73,21 @@ const Sidebar = () => {
       icon: Clock,
       href: '/watch-later',
     },
+    {
+      name: 'Downloads',
+      icon: Download,
+      href: '/downloads',
+    },
+    {
+      name: 'Premium',
+      icon: Crown,
+      href: '/premium',
+    },
   ];
 
   return (
     <aside className="fixed top-16 left-0 z-40 h-[calc(100vh-4rem)] w-72 overflow-y-auto border-r border-gray-200 bg-white px-3 py-5">
-
       <nav className="flex flex-col gap-6">
-
-        {/* MAIN MENU */}
         <div className="space-y-1">
 
           {menuItems.map((item, index) => {
@@ -100,11 +109,7 @@ const Sidebar = () => {
           })}
 
         </div>
-
-        {/* DIVIDER */}
         <div className="border-t border-gray-200" />
-
-        {/* LIBRARY */}
         <div>
 
           <h3 className="px-4 pb-2 text-sm font-semibold text-gray-500">
@@ -134,11 +139,8 @@ const Sidebar = () => {
           </div>
 
         </div>
-
-        {/* DIVIDER */}
         <div className="border-t border-gray-200" />
 
-        {/* CHANNEL SECTION */}
         <div className="px-2">
 
           {user?.channelname ? (

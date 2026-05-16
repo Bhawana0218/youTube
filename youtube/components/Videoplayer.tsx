@@ -13,7 +13,6 @@ const Videoplayer = ({ video }: any) => {
             <video
                 key={video?._id}
                 src={videoUrl}
-                // src="https://www.w3schools.com/html/mov_bbb.mp4"
                 className="w-full h-auto max-h-[500px] rounded-lg bg-black"
                 controls
                 autoPlay

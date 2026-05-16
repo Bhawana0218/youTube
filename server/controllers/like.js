@@ -56,8 +56,18 @@ export const getallLikedVideo = async (req, res) => {
                 model: "Videofiles",
                 select: "videotitle videochannel views createdAt filepath"
             })
-            .exec()
-        return res.status(200).json(likevideo);
+            .exec();
+
+        const validLiked = likevideo.filter((item) => Boolean(item.videoid));
+        const staleLikeIds = likevideo
+            .filter((item) => !item.videoid)
+            .map((item) => item._id);
+
+        if (staleLikeIds.length > 0) {
+            await Like.deleteMany({ _id: { $in: staleLikeIds } });
+        }
+
+        return res.status(200).json(validLiked);
     } catch (error) {
         console.log("Error:", error)
         return res.status(500).json({ message: "Something went wrong. Please try again." });
