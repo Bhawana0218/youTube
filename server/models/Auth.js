@@ -10,6 +10,10 @@ const UserSchema = mongoose.Schema({
   channelname: String,
   description: String,
   image: String,
+  phone: {
+    type: String,
+    default: null,
+  },
 
   plan: {
     type: String,
@@ -35,6 +39,16 @@ const UserSchema = mongoose.Schema({
   joinedon: {
     type: Date,
     default: Date.now,
+  },
+
+  otp: {
+    type: String,
+    default: null,
+  },
+
+  otpExpiresAt: {
+    type: Date,
+    default: null,
   },
 });
 
