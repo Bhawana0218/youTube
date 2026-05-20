@@ -1,175 +1,70 @@
 'use client';
 
-import axiosInstance from "@/lib/axiosinstance";
 import { useUser } from "@/lib/AuthContext";
-import React, { useEffect, useState } from "react";
+import Link from "next/link";
 
-declare global {
-  interface Window {
-    Razorpay?: any;
-  }
-}
-
-const loadRazorpayScript = () =>
-  new Promise<boolean>((resolve) => {
-    if (window.Razorpay) {
-      resolve(true);
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-
-const PremiumPage = () => {
-  const { user, login } = useUser() as {
-    user: {
-      id: string;
-      name: string;
-      email?: string;
-      isPremium?: boolean;
-      premiumPlan?: string;
-    } | null;
-    login: (userData: any) => void;
-  };
-
-  const [loading, setLoading] = useState(false);
-  const [isPremium, setIsPremium] = useState(Boolean(user?.isPremium));
-
-  useEffect(() => {
-    const syncPremium = async () => {
-      if (!user?.id) return;
-      try {
-        const res = await axiosInstance.get(`/premium/status/${user.id}`);
-        setIsPremium(Boolean(res.data?.isPremium));
-      } catch (error) {
-        console.log("Premium status check failed:", error);
-      }
-    };
-
-    syncPremium();
-  }, [user?.id]);
-
-  const startPremiumCheckout = async () => {
-    if (!user?.id) {
-      alert("Please sign in first.");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const scriptLoaded = await loadRazorpayScript();
-      if (!scriptLoaded) {
-        alert("Unable to load Razorpay checkout script.");
-        return;
-      }
-
-      const orderRes = await axiosInstance.post("/premium/create-order", {
-        userId: user.id,
-      });
-
-      if (orderRes.data?.alreadyPremium) {
-        setIsPremium(true);
-        alert("You are already a premium user.");
-        return;
-      }
-
-      const options = {
-        key: orderRes.data?.keyId,
-        amount: orderRes.data?.amount,
-        currency: orderRes.data?.currency,
-        name: "YouTube Premium",
-        description: "Unlimited video downloads",
-        order_id: orderRes.data?.orderId,
-        handler: async (response: {
-          razorpay_order_id: string;
-          razorpay_payment_id: string;
-          razorpay_signature: string;
-        }) => {
-          try {
-            const verifyRes = await axiosInstance.post("/premium/verify", {
-              userId: user.id,
-              ...response,
-            });
-
-            if (verifyRes.data?.user) {
-              const updatedUser = verifyRes.data.user;
-              if (updatedUser._id && !updatedUser.id) {
-                updatedUser.id = updatedUser._id;
-                delete updatedUser._id;
-              }
-              login(updatedUser);
-            }
-            setIsPremium(true);
-            alert("Premium activated successfully.");
-          } catch (error) {
-            console.log("Payment verify failed:", error);
-            const apiMessage =
-              (error as any)?.response?.data?.message ||
-              (error as any)?.message ||
-              "Payment verification failed.";
-            alert(apiMessage);
-          }
-        },
-        prefill: {
-          name: user.name || "",
-          email: user.email || "",
-        },
-        theme: {
-          color: "#111827",
-        },
-      };
-
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
-    } catch (error) {
-      console.log("Premium checkout error:", error);
-      const apiMessage =
-        (error as any)?.response?.data?.message ||
-        (error as any)?.message ||
-        "Unable to start premium checkout.";
-      alert(apiMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
+const PremiumDashboard = () => {
+  const { user } = useUser() as any;
 
   return (
-    <div className="max-w-3xl mx-auto mt-10 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-      <h1 className="text-2xl font-semibold text-gray-900">Premium Plan</h1>
-      <p className="mt-2 text-sm text-gray-600">
-        Free users can download 1 video per day. Premium users get unlimited downloads.
-      </p>
+    <div className="min-h-screen bg-white text-black flex items-center justify-center px-4">
 
-      <div className="mt-6 rounded-xl bg-gray-50 p-4">
-        <p className="text-sm text-gray-700">
-          Current plan:{" "}
-          <span className="font-semibold">{isPremium ? "Premium" : "Free"}</span>
-        </p>
-      </div>
+      <div className="w-full max-w-2xl rounded-3xl border border-gray-800 bg-gray-350 p-10">
 
-      {!isPremium && (
-        <button
-          type="button"
-          onClick={startPremiumCheckout}
-          disabled={loading}
-          className="mt-6 rounded-full bg-black px-6 py-3 text-sm font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-70"
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-gray-800">
+              Current Membership
+            </p>
+
+            <h1 className="mt-2 text-5xl font-black capitalize">
+              {user?.plan || "free"}
+            </h1>
+          </div>
+
+          <div className="rounded-full bg-blue-500/20 px-5 py-2 text-blue-400 font-semibold">
+            Active
+          </div>
+        </div>
+
+        <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <div className="rounded-2xl border border-gray-800 bg-white/5 p-6">
+            <p className="text-sm text-gray-800">
+              Watch Limit
+            </p>
+
+            <h2 className="mt-3 text-3xl font-bold">
+              {user?.plan === "gold"
+                ? "Unlimited"
+                : user?.plan === "silver"
+                ? "10 Minutes"
+                : user?.plan === "bronze"
+                ? "7 Minutes"
+                : "5 Minutes"}
+            </h2>
+          </div>
+
+          <div className="rounded-2xl border border-gray-800 bg-white/5 p-6">
+            <p className="text-sm text-gray-800">
+              Membership Status
+            </p>
+
+            <h2 className="mt-3 text-3xl font-bold text-green-400">
+              Active
+            </h2>
+          </div>
+        </div>
+
+        <Link
+          href="/plans"
+          className="mt-10 inline-flex w-full items-center justify-center rounded-2xl bg-gray-700 px-6 py-4 text-lg font-bold text-white transition hover:bg-gray-900"
         >
-          {loading ? "Processing..." : "Upgrade to Premium"}
-        </button>
-      )}
-
-      {isPremium && (
-        <p className="mt-6 text-sm font-medium text-green-700">
-          Premium is active. You can now download unlimited videos.
-        </p>
-      )}
+          Upgrade Plan
+        </Link>
+      </div>
     </div>
   );
 };
 
-export default PremiumPage;
+export default PremiumDashboard;

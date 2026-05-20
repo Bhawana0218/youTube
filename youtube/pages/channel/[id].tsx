@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
+import { useRouter } from "next/router";
 
 import Channeltabs from "@/components/Channeltabs";
 import VideoUploader from "@/components/VideoUploader";
 import ChannelVideos from "@/components/ChannelVideos";
+import axiosInstance from '@/lib/axiosinstance';
 import { useUser } from "@/lib/AuthContext";
 
 interface UserType {
@@ -29,8 +30,8 @@ interface ChannelType {
 }
 
 const ChannelPage = () => {
-  const params = useParams<{ id: string | string[] }>();
-  const idParam = params?.id;
+  const router = useRouter();
+  const idParam = router.query.id;
   const routeId = Array.isArray(idParam) ? idParam[0] : idParam;
 
   const { user, loading } = useUser() as {
@@ -39,6 +40,7 @@ const ChannelPage = () => {
   };
 
   const [channel, setChannel] = useState<ChannelType | null>(null);
+  const [channelVideos, setChannelVideos] = useState([]);
 
   const isOwnChannel = useMemo(() => {
     if (!user || !routeId) return false;
@@ -49,7 +51,6 @@ const ChannelPage = () => {
     if (!routeId) return;
 
     if (isOwnChannel && user) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setChannel({
         id: user.id,
         name: user.channelname || user.name,
@@ -77,6 +78,21 @@ const ChannelPage = () => {
     });
   }, [isOwnChannel, routeId, user]);
 
+  useEffect(() => {
+    if (!routeId) return;
+
+    const fetchVideos = async () => {
+      try {
+        const res = await axiosInstance.get(`/video/channel/${routeId}`);
+        setChannelVideos(res.data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchVideos();
+  }, [routeId]);
+
   if (loading || !routeId || !channel) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f8f9fb]">
@@ -87,51 +103,6 @@ const ChannelPage = () => {
       </div>
     );
   }
-
-  const channelVideos = [
-    {
-      id: "1",
-      videotitle: "Learn React in 30 Minutes",
-      filename: "react-course.mp4",
-      filetype: "video/mp4",
-      filepath: "/videos/v.mp4",
-      filesize: "120MB",
-      videochannel: channel.name,
-      like: 12500,
-      dislike: 500,
-      views: 245000,
-      uploader: channel.name,
-      createdAt: "2025-04-20T10:30:00Z",
-    },
-    {
-      id: "2",
-      videotitle: "Master Next.js Full Course",
-      filename: "next-course.mp4",
-      filetype: "video/mp4",
-      filepath: "/videos/v.mp4",
-      filesize: "350MB",
-      videochannel: channel.name,
-      like: 45200,
-      dislike: 1200,
-      views: 780000,
-      uploader: channel.name,
-      createdAt: "2025-04-18T08:15:00Z",
-    },
-    {
-      id: "3",
-      videotitle: "TypeScript Crash Course",
-      filename: "typescript.mp4",
-      filetype: "video/mp4",
-      filepath: "/videos/v.mp4",
-      filesize: "210MB",
-      videochannel: channel.name,
-      like: 18900,
-      dislike: 700,
-      views: 510000,
-      uploader: channel.name,
-      createdAt: "2025-04-15T06:20:00Z",
-    },
-  ];
 
   return (
     <main className="min-h-screen bg-[#f8f9fb] mt-8">
@@ -176,6 +147,7 @@ const ChannelPage = () => {
             </div>
           </div>
         </section>
+
         <section className="sticky top-16 z-20 mt-6">
           <div className="bg-white rounded-2xl border border-gray-200 px-5 py-3 shadow-sm">
             <Channeltabs />

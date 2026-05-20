@@ -1,4 +1,5 @@
-import video from '../models/Video.js';
+import mongoose from "mongoose";
+import Video from "../models/Video.js";
 
 export const uploadvideo = async (req, res) => {
     if (!req.file) {
@@ -6,7 +7,7 @@ export const uploadvideo = async (req, res) => {
     }
 
     try {
-        const file = new video({
+        const file = new Video({
             videotitle: req.body.videotitle,
             filename: req.file.originalname,
             filepath: req.file.path,
@@ -25,24 +26,47 @@ export const uploadvideo = async (req, res) => {
 
 export const getallvideo = async (req, res) => {
     try {
-        const files = await video.find();
+        const files = await Video.find();
         return res.status(200).send(files);
-
     } catch (error) {
         return res.status(500).json({ message: "Something went wrong. Please try again." });
-
     }
 };
 
 export const getVideoById = async (req, res) => {
-    const { videoId } = req.params;
     try {
-        const videoFile = await video.findById(videoId);
-        if (!videoFile) {
+        const { videoId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(videoId)) {
+            return res.status(400).json({ message: "Invalid video id" });
+        }
+
+        const video = await Video.findById(videoId);
+
+        if (!video) {
             return res.status(404).json({ message: "Video not found" });
         }
-        return res.status(200).json(videoFile);
+
+        return res.status(200).json(video);
     } catch (error) {
-        return res.status(500).json({ message: "Something went wrong. Please try again." });
+        console.log(error);
+        return res.status(500).json({ message: "Server error" });
+    }
+};
+
+export const getVideosByChannel = async (req, res) => {
+    try {
+        const { channelId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(channelId)) {
+            return res.status(400).json({ message: "Invalid channel id" });
+        }
+
+        const videos = await Video.find({ uploader: channelId }).sort({ createdAt: -1 });
+
+        return res.status(200).json(videos);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Server error" });
     }
 };

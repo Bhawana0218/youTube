@@ -1,11 +1,12 @@
 import express from "express";
-import { getallvideo, getVideoById, uploadvideo } from "../controllers/video.js";
+import { getallvideo, getVideoById, getVideosByChannel, uploadvideo } from "../controllers/video.js";
 import upload from "../filehelper/filehelper.js";
 
 const routes = express.Router();
 
 routes.post("/upload", upload.single("file"), uploadvideo);
 routes.get("/getall", getallvideo);
+routes.get("/channel/:channelId", getVideosByChannel);
 routes.get("/:videoId", getVideoById);
 
 export default routes;

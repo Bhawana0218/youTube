@@ -5,7 +5,7 @@ import RelatedVideos from '@/components/RelatedVideos';
 import VideoInfo from '@/components/VideoInfo';
 import Videoplayer from '@/components/Videoplayer';
 import axiosInstance from '@/lib/axiosinstance';
-import { useParams } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 
 type VideoItem = {
@@ -13,8 +13,8 @@ type VideoItem = {
 };
 
 export default function WatchPage() {
-  const params = useParams<{ id: string | string[] }>();
-  const idParam = params?.id;
+  const router = useRouter();
+  const idParam = router.query.id;
   const videoId = useMemo(
     () => (Array.isArray(idParam) ? idParam[0] : idParam),
     [idParam]

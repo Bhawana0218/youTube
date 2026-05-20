@@ -48,7 +48,7 @@ type UserType = {
 };
 
 const DEFAULT_AVATAR = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
-const PLAIN_TEXT_REGEX = /^[\p{L}\p{N}\s]+$/u;
+const PLAIN_TEXT_REGEX = /^[\p{L}\p{N}\p{Emoji}\s.,!?'"()-]+$/u;
 
 const getRelativeTime = (value: string) => {
   if (!value) return 'recently';
@@ -195,9 +195,9 @@ const Comments = ({ videoId }: { videoId?: string }) => {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+   
     fetchComments();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [videoId]);
 
   useEffect(() => {

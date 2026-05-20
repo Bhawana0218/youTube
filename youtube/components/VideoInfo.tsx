@@ -98,39 +98,59 @@ const VideoInfo = ({ video }: any) => {
         }
 
         try {
-            const res = await axiosInstance.post("/download/request", {
-                userId: user.id,
-                videoId: video._id,
-            });
-
-            const relativeUrl = String(res.data?.downloadUrl || "");
-            const baseUrl = String(process.env.NEXT_PUBLIC_BACKEND_URL || "").replace(/\/$/, "");
-            const normalizedRelative = relativeUrl.startsWith("/") ? relativeUrl : `/${relativeUrl}`;
-            const videoUrl = `${baseUrl}${normalizedRelative}`;
-
-            const link = document.createElement("a");
-            link.href = videoUrl;
-            link.setAttribute("download", video.videotitle || "video");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            if (res.data?.isPremium !== true && typeof res.data?.remainingToday === "number") {
-                alert(`Download complete. Free downloads left today: ${res.data.remainingToday}`);
-            }
-        } catch (error) {
-            const err: any = error;
-            if (err?.response?.status === 403 && err?.response?.data?.requiresPremium) {
-                const proceed = window.confirm(
-                    "You already used your free download for today. Upgrade to Premium for unlimited downloads. Go to Premium page now?"
-                );
-                if (proceed) {
-                    router.push("/premium");
+            const res = await axiosInstance.post(
+                "/download/request",
+                {
+                    userId: user.id,
+                    videoId: video._id,
                 }
+            );
+
+            const relativeUrl = res.data?.downloadUrl;
+
+            if (!relativeUrl) {
+                alert("Download URL missing");
                 return;
             }
+
+            const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+            const fileUrl = `${baseUrl}${relativeUrl}`;
+
+            const a = document.createElement("a");
+
+            a.href = fileUrl;
+
+            a.download =
+                `${video.videotitle || "video"}.mp4`;
+
+            document.body.appendChild(a);
+
+            a.click();
+
+            document.body.removeChild(a);
+
+        } catch (error: any) {
+
             console.log(error);
-            alert("Unable to download video right now.");
+
+            if (
+                error?.response?.status === 403 &&
+                error?.response?.data?.requiresPremium
+            ) {
+
+                const upgrade = window.confirm(
+                    "Free download limit reached. Upgrade to Premium?"
+                );
+
+                if (upgrade) {
+                    router.push("/plans");
+                }
+
+                return;
+            }
+
+            alert("Unable to download video");
         }
     };
 
